@@ -4,17 +4,11 @@
 
 ## デモ
 ### 入力
-<img src="demo/icon_sample.png" width="300px"> <img src="demo/photo.png" width="500px">
+<img src="demo/icon_sample.png" width="200px"> <img src="demo/photo.png" width="300px">
 
 ### 出力
-<img src="demo/out.png" width="300px">
+<img src="demo/out.png" width="200px">
 
-|> | 入力  |
-|---|---|
-| <img src="demo/icon_sample.png" width="300px"> | <img src="demo/photo.png" width="500px">  |
-|>| 出力|
-|---|---|
-|>|<img src="demo/out.png" width="300px">|
 
 ## 使い方
 1. ReleasesよりKF3-Photo-Icon-Generator.exeをダウンロード
