@@ -103,9 +103,8 @@ if __name__ == '__main__':
 	if len(sys.argv) > 2:
 		input_files = sys.argv[1:3]
 	else:
-		input_dir = "input_img"
 		filetypes = [('画像', '*.png;*.jpg;*.jpeg')]
-		input_files = filedialog.askopenfilenames(initialdir=input_dir, filetypes=filetypes)
+		input_files = filedialog.askopenfilenames(initialdir=os.getcwd(), filetypes=filetypes)
 
 	if len(input_files) != 2:
 		print('エラー: 入力ファイルは2つにしてください')
