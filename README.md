@@ -1,5 +1,5 @@
 # KF3 Photo Icon Generator
-[アプリ版けものフレンズ３wikiなのだ！](https://seesaawiki.jp/kemono_friends3_5ch/) で使用するフォトのアイコンを作成するツールです。
+[アプリ版けものフレンズ３wikiなのだ！](https://seesaawiki.jp/kemono_friends3_5ch/) で使用するフォトのアイコンを作成するツールです。<br>
 <span style="color: red;">フォト画像は「けものフレンズプロジェクト２Ｇ」及び「SEGA」「アピリッツ」又はその関連団体に帰属します。</span>
 
 ## デモ
