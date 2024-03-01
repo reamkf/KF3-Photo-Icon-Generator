@@ -6,6 +6,7 @@ from tkinter import filedialog
 from tqdm import tqdm
 
 import subprocess
+from icecream import ic
 
 def imread(filename, flags=cv2.IMREAD_COLOR, dtype=np.uint8):
 	try:
@@ -49,11 +50,14 @@ def get_dir_list(dir:str):
 """
 
 def floatrange(start, end, step):
-	scale = 10**min(map(lambda x: np.floor(np.log10(x)) if x != 0 else 0, [start, end, step]))
-	start = int(start/scale)
-	end = int(end/scale)
-	step = int(step/scale)
-	return [i*scale for i in range(start, end, step)]
+	result = []
+	i = start
+	while i <= end:
+		result.append(i)
+		i += step
+	if result[-1] != end:
+		result.append(end)
+	return result
 
 def unpack_rgba(img:np.ndarray):
 	h, w, c = img.shape
@@ -89,19 +93,20 @@ def scaledMatchTemplate(image:np.ndarray, template:np.ndarray, scale=1, **kwargs
 	template = cv2.resize(template, (size, size))
 	if 'mask' in kwargs:
 		kwargs['mask'] = cv2.resize(kwargs['mask'], (size, size))
-	minVal, maxVal, minLoc, maxLoc = cv2.minMaxLoc(cv2.matchTemplate(image, template, cv2.TM_SQDIFF_NORMED, **kwargs))
-	return [scale, minVal, *minLoc]
+	minVal, maxVal, minLoc, maxLoc = cv2.minMaxLoc(cv2.matchTemplate(image, template, cv2.TM_CCOEFF_NORMED, **kwargs))
+	# return [scale, minVal, *minLoc]
+	return [scale, maxVal, *maxLoc]
 
 def scaledMatchTemplateSearch(image:np.ndarray, template:np.ndarray, scales:list, **kwargs):
 	result = joblib.Parallel(n_jobs=-1, prefer="threads")(joblib.delayed(scaledMatchTemplate)(image, template, scale, **kwargs) for scale in tqdm(scales))
 	result = np.array(result)
-	best_result = result[np.argmin(result, axis=0)[1]]
+	best_result = result[np.argmax(result, axis=0)[1]]
 	return best_result
 
-def trwoStepScaledMatchTemplateSearch(image:np.ndarray, template:np.ndarray, min_scale, max_scale, **kwargs):
+def twoStepScaledMatchTemplateSearch(image:np.ndarray, template:np.ndarray, min_scale, max_scale, **kwargs):
 	step = 1 / min(image.shape[:2])
-	scale, score, x1, y1 = scaledMatchTemplateSearch(image, template, floatrange(min_scale, max_scale+0.01, step*2))
-	return scaledMatchTemplateSearch(image, template, floatrange(scale-0.02, scale+0.02, step))
+	scale, score, x1, y1 = scaledMatchTemplateSearch(image, template, floatrange(min_scale, max_scale, step*2))
+	return scaledMatchTemplateSearch(image, template, floatrange(max(scale-0.02, min_scale), min(scale+0.02, max_scale), step))
 
 
 if __name__ == '__main__':
@@ -167,10 +172,10 @@ if __name__ == '__main__':
 	for f in frames:
 		color, mask = unpack_rgba(f)
 		mask = np.ones_like(mask, dtype=np.uint8) * mask
-		res = scaledMatchTemplateSearch(icon, color, floatrange(0.3, 1+0.01, 0.01), mask=mask)
+		res = scaledMatchTemplateSearch(icon, color, floatrange(0.6, 1, 0.01), mask=mask)
 		results.append(res)
 
-	idx = np.argmin(results, axis=0)[1]
+	idx = np.argmax(results, axis=0)[1]
 	frame = frames[idx]
 	match_result = results[idx]
 	scale, score, x1, y1 = match_result
@@ -193,12 +198,14 @@ if __name__ == '__main__':
 	############## マッチング ##############
 
 	# 1%単位で探索
+	"""
 	scale, score, x1, y1 = scaledMatchTemplateSearch(photo, icon, floatrange(0.01, 1+0.01, 0.01))
 
 	## 0.05%単位で探索
 	scale, score, x1, y1 = scaledMatchTemplateSearch(photo, icon, floatrange(scale-0.01, scale+0.01, 0.0005))
 	# # print(best_result)
-	# scale, score, x1, y1 = trwoStepScaledMatchTemplateSearch(photo, icon, 0.05, 1)
+	"""
+	scale, score, x1, y1 = twoStepScaledMatchTemplateSearch(photo, icon, 0.1, 1)
 
 	s = min(photo.shape[:2])
 	x1, y1 = int(x1), int(y1)
