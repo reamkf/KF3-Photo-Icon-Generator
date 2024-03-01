@@ -125,6 +125,7 @@ if __name__ == '__main__':
 		photo = input_imgs[1]
 		icon = input_imgs[0]
 
+	############## フォトの前処理 ##############
 	# フォトが1024x720より大きければ縮小
 	h, w, _ = photo.shape
 	r = 1024 / max(h, w)
@@ -145,7 +146,8 @@ if __name__ == '__main__':
 	photo_[y:y+h, x:x+w, :] = photo
 	photo = photo_
 
-	# アイコンの余白削除と☆・属性の判定
+	############## アイコンの余白削除と☆・属性の判定 ##############
+	# マッチング
 	frames = [
 		imread(resource_path(f'resource\\frame_{i}_{j}.png'), -1) for i, j in [(3, 1), (3, 2), (4, 1), (4, 2)]
 	]
@@ -161,6 +163,7 @@ if __name__ == '__main__':
 	match_result = results[idx]
 	scale, score, x1, y1 = match_result
 
+	# アイコン領域の切り出し
 	s = min(icon.shape[:2])
 	x1, y1 = int(x1), int(y1)
 	x2, y2 = int(x1 + s*scale), int(y1 + s*scale)
@@ -174,7 +177,8 @@ if __name__ == '__main__':
 	crop_max = int(h * 0.75)
 	icon = icon[crop_min:crop_max, crop_min:crop_max, :]
 
-	# マッチング
+
+	############## マッチング ##############
 
 	## 1%単位で探索
 	scale, score, x1, y1 = scaledMatchTemplateSearch(photo, icon, floatrange(0.01, 1+0.01, 0.01))
