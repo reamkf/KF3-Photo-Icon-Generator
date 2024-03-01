@@ -89,13 +89,13 @@ def scaledMatchTemplate(image:np.ndarray, template:np.ndarray, scale=1, **kwargs
 	template = cv2.resize(template, (size, size))
 	if 'mask' in kwargs:
 		kwargs['mask'] = cv2.resize(kwargs['mask'], (size, size))
-	minVal, maxVal, minLoc, maxLoc = cv2.minMaxLoc(cv2.matchTemplate(image, template, cv2.TM_CCOEFF_NORMED, **kwargs))
-	return [scale, maxVal, *maxLoc]
+	minVal, maxVal, minLoc, maxLoc = cv2.minMaxLoc(cv2.matchTemplate(image, template, cv2.TM_SQDIFF_NORMED, **kwargs))
+	return [scale, minVal, *minLoc]
 
 def scaledMatchTemplateSearch(image:np.ndarray, template:np.ndarray, scales:list, **kwargs):
 	result = joblib.Parallel(n_jobs=-1, prefer="threads")(joblib.delayed(scaledMatchTemplate)(image, template, scale, **kwargs) for scale in tqdm(scales))
 	result = np.array(result)
-	best_result = result[np.argmax(result, axis=0)[1]]
+	best_result = result[np.argmin(result, axis=0)[1]]
 	return best_result
 
 if __name__ == '__main__':
@@ -156,7 +156,7 @@ if __name__ == '__main__':
 		res = scaledMatchTemplateSearch(icon, color, floatrange(0.3, 1+0.01, 0.01), mask=mask)
 		results.append(res)
 
-	idx = np.argmax(results, axis=0)[1]
+	idx = np.argmin(results, axis=0)[1]
 	frame = frames[idx]
 	match_result = results[idx]
 	scale, score, x1, y1 = match_result
