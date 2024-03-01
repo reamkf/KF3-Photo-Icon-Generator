@@ -98,6 +98,12 @@ def scaledMatchTemplateSearch(image:np.ndarray, template:np.ndarray, scales:list
 	best_result = result[np.argmin(result, axis=0)[1]]
 	return best_result
 
+def trwoStepScaledMatchTemplateSearch(image:np.ndarray, template:np.ndarray, min_scale, max_scale, **kwargs):
+	step = 1 / min(image.shape[:2])
+	scale, score, x1, y1 = scaledMatchTemplateSearch(image, template, floatrange(min_scale, max_scale+0.01, step*2))
+	return scaledMatchTemplateSearch(image, template, floatrange(scale-0.02, scale+0.02, step))
+
+
 if __name__ == '__main__':
 	# multiprocessing.freeze_support()
 	if len(sys.argv) > 2:
@@ -146,6 +152,12 @@ if __name__ == '__main__':
 	photo_[y:y+h, x:x+w, :] = photo
 	photo = photo_
 
+	############## アイコンの前処理 ##############
+	# アイコンが360x360より大きければ縮小
+	r = 360 / max(icon.shape[:2])
+	if r < 1:
+		icon = cv2.resize(icon, None, fx=r, fy=r)
+
 	############## アイコンの余白削除と☆・属性の判定 ##############
 	# マッチング
 	frames = [
@@ -180,12 +192,13 @@ if __name__ == '__main__':
 
 	############## マッチング ##############
 
-	## 1%単位で探索
+	# 1%単位で探索
 	scale, score, x1, y1 = scaledMatchTemplateSearch(photo, icon, floatrange(0.01, 1+0.01, 0.01))
 
 	## 0.05%単位で探索
 	scale, score, x1, y1 = scaledMatchTemplateSearch(photo, icon, floatrange(scale-0.01, scale+0.01, 0.0005))
-	# print(best_result)
+	# # print(best_result)
+	# scale, score, x1, y1 = trwoStepScaledMatchTemplateSearch(photo, icon, 0.05, 1)
 
 	s = min(photo.shape[:2])
 	x1, y1 = int(x1), int(y1)
