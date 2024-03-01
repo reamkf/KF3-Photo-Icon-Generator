@@ -67,6 +67,10 @@ def unpack_rgba(img:np.ndarray):
 	else:
 		return img, np.ones((h, w), dtype=bool)
 
+def aspect_ratio(img:np.ndarray):
+	h, w = img.shape[:2]
+	return h / w if h > w else w / h
+
 """
 # 平均二乗誤差
 def img_mse(img1:np.ndarray, img2:np.ndarray):
@@ -128,9 +132,7 @@ if __name__ == '__main__':
 	input_imgs = [imread(f) for f in input_files]
 
 	# 入力のうちどちらがフォトでどちらがアイコンか判定
-	h, w, _ = input_imgs[0].shape
-	r = h / w
-	if r > 1.5 or r < 0.666:
+	if aspect_ratio(input_imgs[0]) > aspect_ratio(input_imgs[1]):
 		photo = input_imgs[0]
 		icon = input_imgs[1]
 		photo_filename = input_files[0]
