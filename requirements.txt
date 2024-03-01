@@ -3,3 +3,5 @@ numpy
 pyinstaller
 joblib
 tqdm
+termcolor
+icecream
