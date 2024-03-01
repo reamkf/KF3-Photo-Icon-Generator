@@ -7,6 +7,7 @@ from tqdm import tqdm
 
 import subprocess
 from icecream import ic
+from termcolor import cprint
 
 def imread(filename, flags=cv2.IMREAD_COLOR, dtype=np.uint8):
 	try:
@@ -132,9 +133,11 @@ if __name__ == '__main__':
 	if r > 1.5 or r < 0.666:
 		photo = input_imgs[0]
 		icon = input_imgs[1]
+		photo_filename = input_files[0]
 	else:
 		photo = input_imgs[1]
 		icon = input_imgs[0]
+		photo_filename = input_files[1]
 
 	############## フォトの前処理 ##############
 	# フォトが1024x720より大きければ縮小
@@ -164,6 +167,8 @@ if __name__ == '__main__':
 		icon = cv2.resize(icon, None, fx=r, fy=r)
 
 	############## アイコンの余白削除と☆・属性の判定 ##############
+	print()
+	print('* 属性とレアリティの判別中...')
 	# マッチング
 	frames = [
 		imread(resource_path(f'resource\\frame_{i}_{j}.png'), -1) for i, j in [(3, 1), (3, 2), (4, 1), (4, 2)]
@@ -176,11 +181,12 @@ if __name__ == '__main__':
 		results.append(res)
 
 	idx = np.argmax(results, axis=0)[1]
+	print(f'属性: {"足跡" if idx == 0 or idx == 2 else "青"}, レアリティ: {3 if idx <= 1 else 4}')
 	frame = frames[idx]
 	match_result = results[idx]
 	scale, score, x1, y1 = match_result
 
-	# アイコン領域の切り出し
+	# 余白の削除
 	s = min(icon.shape[:2])
 	x1, y1 = int(x1), int(y1)
 	x2, y2 = int(x1 + s*scale), int(y1 + s*scale)
@@ -196,6 +202,8 @@ if __name__ == '__main__':
 
 
 	############## マッチング ##############
+	print()
+	print('* アイコン領域の探索中...')
 
 	# 1%単位で探索
 	"""
@@ -236,5 +244,9 @@ if __name__ == '__main__':
 	# 		cv2.destroyAllWindows()
 	# 		break
 
-	imwrite('out.png', result)
+	print('完了')
+	no_ext, ext = os.path.splitext(photo_filename)
+	output_file = no_ext + 'アイコン' + ext
+	imwrite(output_file, result)
+	print(f'{output_file}に保存しました。')
 	subprocess.run('PAUSE', shell=True)
